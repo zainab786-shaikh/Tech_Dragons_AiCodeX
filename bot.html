@@ -1,0 +1,103 @@
+<html>
+
+<head>
+
+	<!-- seo related -->
+	<title>Chatbot Frontend</title>
+
+	<!-- meta related -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+	<!-- vendor css & style files -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Josefin+Sans:300|Open+Sans:300|Oxygen|Material+Icons"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+	<!-- custom css -->
+	<link rel="stylesheet" type="text/css" href="static/main.css">
+
+</head>
+
+<body>
+
+	<div class="container">
+
+		<div class="row padded_row">
+
+			<!-- right side content -->
+			<div class="col-md-7">
+
+				<div class="chat_window">
+
+					<div class="top_menu">
+						<div class="title">AITutor</div>
+						<div> <a href="" class="image-link">
+								<img
+									src="https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" />
+							</a>
+
+						</div>
+					</div>
+					<!-- Dropdown Menu (initially hidden) -->
+					<div class="dropdown-content">
+						<a href="#">My Profile</a>
+						<a href="#">Settings</a>
+						<a href="#">Upgrade Plan</a>
+						<a href="#">Log Out</a>
+					</div>
+					<!-- dynamically rendered -->
+					<ul class="messages"></ul>
+
+					<!-- input -->
+					<div class="bottom_wrapper">
+						<input id="msg_input" placeholder="Say Hi to begin chat..." />
+						<div id="send_button" class="app_button_1">Send</div>
+						<div id="voice_input" class="app_button_1"
+							style="display: inline-flex; align-items: center; justify-content: center;">
+							🎤
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<!-- left side content -->
+			<div class="scrollable-sidebar">
+				<div class="new-chat"><a href="./newchat.html">+ New Chat</a>
+					<br>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- vendor script files -->
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js">
+	</script>
+	<script>
+		// Toggle dropdown visibility when the image is clicked
+		document.querySelector('.image-link img').addEventListener('click', function (event) {
+			event.preventDefault(); // Prevent the default anchor behavior
+			var dropdown = document.querySelector('.dropdown-content');
+			// Toggle display between 'block' and 'none'
+			dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+		});
+
+		// Optionally close dropdown when clicking outside of it
+		window.addEventListener('click', function (e) {
+			if (!document.querySelector('.image-link img').contains(e.target) && !document.querySelector('.dropdown-content').contains(e.target)) {
+				document.querySelector('.dropdown-content').style.display = 'none';
+			}
+		});
+	</script>
+	<!-- custom scripts -->
+	<script src="static/main.js"></script>
+</body>
+
+</html>
