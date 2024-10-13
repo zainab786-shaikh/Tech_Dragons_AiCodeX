@@ -38,7 +38,10 @@ $(document).ready(function () {
 var stage = "handleWelcome";
 var topic = "";
 var count = 0;
-var mcqQuestions = ""
+var mcqQuestions = "";
+var mcqCurrentQuestion = 0;
+var mcqData = [];
+
 function sendMessageToBot(userMessage) {
     return new Promise((resolve, reject) => {
         setTimeout(async function () {
@@ -68,7 +71,8 @@ async function handleInteraction(userMessage) {
             await handleWelcome();
             topic = "";
             count = 0;
-            mcqQuestions = ""
+            mcqQuestions = "";
+            mcqCurrentQuestion = 0;
             getUserInput = true;
         } else if (stage == "handleCheckTopic") {
             await handleCheckTopic(userMessage);
@@ -81,9 +85,13 @@ async function handleInteraction(userMessage) {
             await handleUserUnderstandingOfTopic(userMessage);
         } else if (stage == "handleMCQ") {
             await handleMCQ();
+        } else if (stage == "handleMCQEachQuestion") {
+            await handleMCQEachQuestion();
             getUserInput = true;
-        } else if (stage == "handleMCQAnswer") {
-            await handleMCQAnswer(userMessage);
+        } else if (stage == "handleMCQEachAnswer") {
+            await handleMCQEachAnswer(userMessage);
+        } else if (stage == "handleMCQDone") {
+            await handleMCQDone();
         }
     }
 }
@@ -148,13 +156,35 @@ async function handleUserUnderstandingOfTopic(userMessage) {
 async function handleMCQ() {
     let botMessage = "Share at least 5 MCQs on the following topic with 4 options each without the answer. Also show the user how to write the answer of the MCQ. Topic is : " + topic;
     let botResponse = await sendMessageToBot(botMessage);
-    showBotMessage(botResponse);
-    mcqQuestions = botResponse;
-    stage = "handleMCQAnswer"
+    //showBotMessage(botResponse);
+    mcqQuestions = botResponse.split(/(?=\d+\.\s)/);
+    stage = "handleMCQEachQuestion";
     return stage;
 }
 
-async function handleMCQAnswer(userMessage) {
+async function handleMCQEachQuestion () {
+    let stage = "";
+    if(mcqCurrentQuestion != mcqQuestions.length) {
+        let currentQuesttion = mcqQuestions[mcqCurrentQuestion];
+        showBotMessage(currentQuesttion);
+        stage = "handleMCQAnswer";
+    } else {
+        stage = "handleMCQDone";
+    }
+    return stage;
+}
+
+async function handleMCQEachAnswer (userMessage) {
+    let stage = "";
+    let botMessage = "Kindly Check the answer: \n\n" + mcqQuestions[mcqCurrentQuestion] + "\n\n" + userMessage;
+    let botResponse = await sendMessageToBot(botMessage);
+    showBotMessage(botResponse);
+    mcqData.push({"'question': ${currentQuesttion}, 'answer': ${}"})
+    stage = "handleMCQEachQuestion";
+    return stage;
+}
+
+async function handleMCQDone() {
     let botMessage = "Here are the list of MCQs : " + mcqQuestions + " The following are the answer " + userMessage +
         " Kindly validate the answer and provide the analysis whether the topic " + topic + " is understood by user.";
     let botResponse = await sendMessageToBot(botMessage);
@@ -163,11 +193,11 @@ async function handleMCQAnswer(userMessage) {
     return stage;
 }
 
-
 //-----------------------------------------------------------------------------------------
 function getCurrentTimestamp() {
     return new Date();
 }
+
 function renderMessageToScreen(args) {
     let displayDate = (args.time || getCurrentTimestamp()).toLocaleString('en-IN', {
         month: 'short',
@@ -181,7 +211,9 @@ function renderMessageToScreen(args) {
     <li class="message ${args.message_side}">
         <div class="avatar"></div>
         <div class="text_wrapper">
-            <div class="text">${args.text}</div>
+            <div class="text">
+                ${args.text.replace(/(\r\n|\n|\r)/g, '<br>')}
+            </div>
             <div class="timestamp">${displayDate}</div>
         </div>
     </li>
@@ -194,6 +226,7 @@ function renderMessageToScreen(args) {
     }, 0);
     messagesContainer.animate({ scrollTop: messagesContainer.prop('scrollHeight') }, 300);
 }
+
 function speak(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
