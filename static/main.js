@@ -112,6 +112,7 @@ async function handleCheckTopic(userMessage) {
     const prefix = "valid-";
     if (botResponse.startsWith(prefix)) {
         topic = botResponse.substring(prefix.length);
+        mcqData=[];
         stage = "handleExplainTopic";
     } else {
         stage = "handleWelcome";
@@ -120,21 +121,28 @@ async function handleCheckTopic(userMessage) {
     return stage;
 }
 
+// Function to explain the topic
 async function handleExplainTopic() {
-    let botMessage = ""
-    if (count++ == 0) {
+    let botMessage = "";
+    
+    // Determine which explanation to provide based on the count
+    if (count === 0) {
         botMessage = "Explain the topic briefly: " + topic;
-    } else if (count++ == 1) {
+    } else if (count === 1) {
         botMessage = "Explain the topic in detail: " + topic;
     } else {
         botMessage = "Explain the topic like a kid: " + topic;
     }
+    
+    // Increment count after determining the message
+    count++;
+
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
-    stage = "handleCheckTopicExplanation";
+    
+    stage = "handleCheckTopicExplanation"; // Move to check understanding stage
     return stage;
 }
-
 async function handleCheckTopicExplanation() {
     let userMessage = "Is the topic understood";
     showBotMessage(userMessage);
@@ -143,55 +151,80 @@ async function handleCheckTopicExplanation() {
     return stage;
 }
 
+// Function to handle user response about understanding
 async function handleUserUnderstandingOfTopic(userMessage) {
-    let botMessage = "If the user understood the topic just return yes else no";
-    let botResponse = await sendMessageToBot(botMessage);
-    if (botResponse.toLowerCase() == "yes") {
-        stage = "handleMCQ";
+    // Check if user response indicates understanding
+    if (userMessage.toLowerCase() === "yes") {
+        showBotMessage("Great! Let's move on to some questions.");
+        stage = "handleMCQ"; // Proceed to MCQ if understood
+        await handleMCQ(); // Call your MCQ handling function here
     } else {
-        stage = "handleExplainTopic";
+        // Check how many times we've explained before resetting count
+        if (count < 3) { 
+            stage = "handleExplainTopic"; // Explain the topic again
+            await handleExplainTopic(); // Call again for another explanation
+        } else {
+            showBotMessage("It seems you're still having trouble. Let's go over it again from scratch.");
+            count = 0; // Reset count for another full round of explanations
+            stage = "handleExplainTopic"; 
+            await handleExplainTopic(); // Start over with brief explanation
+        }
     }
-
-    return stage;
 }
-
 async function handleMCQ() {
-    let botMessage = "Share 2 MCQs on the following topic with 4 options each, without the answer. Topic is : " + topic;
+    let botMessage = "Share 2 MCQs on the following topic with 4 options each, without the answer. Topic is: " + topic;
     let botResponse = await sendMessageToBot(botMessage);
-    //showBotMessage(botResponse);
+    
+    // Split questions based on the pattern "number + period + space"
     mcqQuestions = botResponse.split(/(?=\d+\.\s)/);
-    stage = "handleMCQEachQuestion";
+    mcqCurrentQuestion = 0; // Reset current question index
+    stage = "handleMCQEachQuestion"; // Move to asking questions
     return stage;
 }
+
 
 async function handleMCQEachQuestion() {
-    if (mcqCurrentQuestion != mcqQuestions.length) {
+    if (mcqCurrentQuestion < mcqQuestions.length) {
         let currentQuestion = mcqQuestions[mcqCurrentQuestion];
-        showBotMessage(currentQuestion);
-        stage = "handleMCQEachAnswer";
+        showBotMessage(currentQuestion); // Ask the current question
+        stage = "handleMCQEachAnswer"; // Move to waiting for user answer
     } else {
-        stage = "handleMCQDone";
+        stage = "handleMCQDone"; // If no more questions, move to done stage
     }
     return stage;
 }
 
 async function handleMCQEachAnswer(userMessage) {
-    let botMessage = "Kindly Check the answer for the following question and provide your recommendations: \n\nMCQ Question: \n" + mcqQuestions[mcqCurrentQuestion++] + "\n\n Answer: " + userMessage;
+    // Get the current question before incrementing
+    const currentQuestion = mcqQuestions[mcqCurrentQuestion];
+
+    let botMessage = "Kindly check the answer for the following question and provide the correct answer if the user is wrong or right and also explain the answer: \n\nMCQ Question: \n" + currentQuestion + "\n\n Answer: " + userMessage;
+    
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
+
+    // Push the current question and user answer to mcqData
     mcqData.push({
-        'question': mcqQuestions[mcqCurrentQuestion],
+        'question': currentQuestion,
         'answer': userMessage
     });
+
+    // Increment mcqCurrentQuestion after saving the answer
+    mcqCurrentQuestion++;
+    
     stage = "handleMCQEachQuestion";
     return stage;
 }
 
 async function handleMCQDone() {
-    let botMessage = "The following json object contain list of object containing question with mcq options, along with the user provided answer: " + JSON.stringify(mcqData) +
-        " Kindly analyze the data. In simple terms let me know whether the topic " + topic + " is understood by user without going through questions and answers. If not what area to revise";
+    let botMessage = "Please analyze the following JSON object containing a list of questions with multiple-choice options, along with the user's provided answers: " + JSON.stringify(mcqData) + "..."+
+        ". Based on this data, determine whether the user has demonstrated a clear understanding of the topic: " + topic + ". " +
+        "If the user has not grasped certain concepts, kindly suggest specific areas for revision. " +
+        "If all answers are correct, please congratulate the user with an encouraging quote.";
+
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
+    
     stage = "handleWelcome";
     return stage;
 }
