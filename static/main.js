@@ -38,7 +38,7 @@ $(document).ready(function () {
 var stage = "handleWelcome";
 var topic = "";
 var count = 0;
-var mcqQuestions = "";
+var mcqQuestions = [];
 var mcqCurrentQuestion = 0;
 var mcqData = [];
 
@@ -71,7 +71,7 @@ async function handleInteraction(userMessage) {
             await handleWelcome();
             topic = "";
             count = 0;
-            mcqQuestions = "";
+            mcqQuestions = [];
             mcqCurrentQuestion = 0;
             getUserInput = true;
         } else if (stage == "handleCheckTopic") {
@@ -87,7 +87,9 @@ async function handleInteraction(userMessage) {
             await handleMCQ();
         } else if (stage == "handleMCQEachQuestion") {
             await handleMCQEachQuestion();
-            getUserInput = true;
+            if (stage != "handleMCQDone") {
+                getUserInput = true;
+            }
         } else if (stage == "handleMCQEachAnswer") {
             await handleMCQEachAnswer(userMessage);
         } else if (stage == "handleMCQDone") {
@@ -154,7 +156,7 @@ async function handleUserUnderstandingOfTopic(userMessage) {
 }
 
 async function handleMCQ() {
-    let botMessage = "Share at least 5 MCQs on the following topic with 4 options each without the answer. Also show the user how to write the answer of the MCQ. Topic is : " + topic;
+    let botMessage = "Share 2 MCQs on the following topic with 4 options each, without the answer. Topic is : " + topic;
     let botResponse = await sendMessageToBot(botMessage);
     //showBotMessage(botResponse);
     mcqQuestions = botResponse.split(/(?=\d+\.\s)/);
@@ -162,31 +164,32 @@ async function handleMCQ() {
     return stage;
 }
 
-async function handleMCQEachQuestion () {
-    let stage = "";
-    if(mcqCurrentQuestion != mcqQuestions.length) {
-        let currentQuesttion = mcqQuestions[mcqCurrentQuestion];
-        showBotMessage(currentQuesttion);
-        stage = "handleMCQAnswer";
+async function handleMCQEachQuestion() {
+    if (mcqCurrentQuestion != mcqQuestions.length) {
+        let currentQuestion = mcqQuestions[mcqCurrentQuestion];
+        showBotMessage(currentQuestion);
+        stage = "handleMCQEachAnswer";
     } else {
         stage = "handleMCQDone";
     }
     return stage;
 }
 
-async function handleMCQEachAnswer (userMessage) {
-    let stage = "";
-    let botMessage = "Kindly Check the answer: \n\n" + mcqQuestions[mcqCurrentQuestion] + "\n\n" + userMessage;
+async function handleMCQEachAnswer(userMessage) {
+    let botMessage = "Kindly Check the answer for the following question and provide your recommendations: \n\nMCQ Question: \n" + mcqQuestions[mcqCurrentQuestion++] + "\n\n Answer: " + userMessage;
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
-    mcqData.push({"'question': ${currentQuesttion}, 'answer': ${}"})
+    mcqData.push({
+        'question': mcqQuestions[mcqCurrentQuestion],
+        'answer': userMessage
+    });
     stage = "handleMCQEachQuestion";
     return stage;
 }
 
 async function handleMCQDone() {
-    let botMessage = "Here are the list of MCQs : " + mcqQuestions + " The following are the answer " + userMessage +
-        " Kindly validate the answer and provide the analysis whether the topic " + topic + " is understood by user.";
+    let botMessage = "The following json object contain list of object containing question with mcq options, along with the user provided answer: " + JSON.stringify(mcqData) +
+        " Kindly analyze the data. In simple terms let me know whether the topic " + topic + " is understood by user without going through questions and answers. If not what area to revise";
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
     stage = "handleWelcome";
