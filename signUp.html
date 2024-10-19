@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script>
+        // Function to show the next container and hide the registration form
+        function showNextContainer(event) {
+            event.preventDefault(); // Prevent form submission
+            
+            const emailInput = document.getElementById('email').value;
+            const nameInput = document.getElementById('name').value;
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+            
+            // Check if email already exists in LocalStorage
+            const existingUserByEmail = registeredUsers.find(user => user.email === emailInput);
+            
+            if (existingUserByEmail) {
+                alert("Email already registered! Please log in.");
+                window.location.href = "login.html"; // Redirect to login page
+            } else {
+                // Add new user object to localStorage
+                registeredUsers.push({ email: emailInput, name: nameInput });
+                localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+                // Save the student's email for later use (more reliable than name)
+                localStorage.setItem('emailInput', emailInput);
+                
+                // Hide the registration form and show the standard selection form
+                document.getElementById('register-container').style.display = 'none';
+                document.getElementById('next-container').style.display = 'block';
+            }
+        }
+
+        // Function to display appropriate fields based on the selected standard
+        function showCollegeFields() {
+            const standard = document.getElementById('standard').value;
+            const collegeFields = document.getElementById('collegeFields');
+            const classFields = document.getElementById('classFields');
+            
+            // Show class fields based on the selected standard
+            classFields.innerHTML = ''; // Clear previous options
+            if (standard === 'primary') {
+                classFields.innerHTML = getDropdownOptions('Class', ['1', '2', '3', '4'], 'selectedClass');
+                collegeFields.style.display = 'none';
+            } else if (standard === 'secondary') {
+                classFields.innerHTML = getDropdownOptions('Class', ['5', '6', '7', '8', '9', '10'], 'selectedClass');
+                collegeFields.style.display = 'none';
+            } else if (standard === 'higher-secondary') {
+                classFields.innerHTML = getDropdownOptions('Class', ['11', '12', 'Diploma'], 'selectedClass');
+                collegeFields.style.display = 'none';
+            } else if (standard === 'bachelors') {
+                classFields.innerHTML = getDropdownOptions('Year', ['1', '2', '3', '4'], 'selectedClass');
+                collegeFields.style.display = 'block';
+            } else if (standard === 'masters') {
+                classFields.innerHTML = getDropdownOptions('Year', ['1', '2'], 'selectedClass');
+                collegeFields.style.display = 'block';
+            } else {
+                classFields.innerHTML = ''; // Clear if no standard is selected
+                collegeFields.style.display = 'none';
+            }
+        }
+
+        // Function to dynamically generate a dropdown for class/year based on the standard
+        function getDropdownOptions(label, options, id) {
+            let html = `<label class="block text-sm font-medium text-gray-700">${label}</label>`;
+            html += `<select id="${id}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+            options.forEach(option => {
+                html += `<option value="${option}">${option}</option>`;
+            });
+            html += `</select>`;
+            return html;
+        }
+
+        // Function to submit details and store them in localStorage
+        function submitDetails(event) {
+            event.preventDefault(); // Prevent form submission
+            
+            const standard = document.getElementById('standard').value;
+            const selectedClass = document.getElementById('selectedClass').value;  // Always access the dynamically created field properly
+            const collegeField = document.getElementById('collegeField') ? document.getElementById('collegeField').value : '';
+            const emailInput = localStorage.getItem('emailInput'); // Retrieve the student's email
+            
+            // Retrieve user details from localStorage
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers'));
+            const userIndex = registeredUsers.findIndex(user => user.email === emailInput);
+            
+            if (userIndex !== -1) {
+                registeredUsers[userIndex].standard = standard;
+                registeredUsers[userIndex].classOrYear = selectedClass;
+                registeredUsers[userIndex].collegeField = collegeField || ''; // Optional for non-college students
+
+                // Store the updated details in localStorage
+                localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+                // Display success message and redirect
+                alert("Registered successfully!");
+                window.location.href = "login.html"; // Redirect to login page
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen" style="background-image: url('images/Sign Up.png'); background-size: cover; background-position: center;">
+    <!-- First Container for registration -->
+    <div id="register-container" class="bg-white p-8 rounded-lg shadow-md w-full max-w-md bg-opacity-90">
+        <h2 class="text-2xl font-bold text-center mb-6">Create your account</h2>
+
+        <form onsubmit="showNextContainer(event)">
+            <div class="mb-4">
+                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" id="name" name="name" placeholder="John Doe" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" placeholder="example.email@gmail.com" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+
+            <button type="submit" class="w-full bg-black text-white py-2 rounded-md text-center">Next</button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-600">
+            Already have an account? <a href="login.html" class="text-blue-600">Log in</a>
+        </p>
+    </div>
+
+    <!-- Second container for student standard and college fields -->
+    <div id="next-container" class="bg-white p-8 rounded-lg shadow-md w-full max-w-md bg-opacity-90" style="display: none;">
+        <h2 class="text-2xl font-bold text-center mb-6">Select your details</h2>
+
+        <form onsubmit="submitDetails(event)">
+            <div class="mb-4">
+                <label for="standard" class="block text-sm font-medium text-gray-700">Student Standard</label>
+                <select id="standard" name="standard" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="showCollegeFields()" required>
+                    <option value="">Select Standard</option>
+                    <option value="primary">Primary</option>
+                    <option value="secondary">Secondary</option>
+                    <option value="higher-secondary">Higher Secondary</option>
+                    <option value="bachelors">Bachelors</option>
+                    <option value="masters">Masters</option>
+                </select>
+            </div>
+
+            <!-- Class/Year fields dynamically generated here -->
+            <div id="classFields" class="mb-4"></div>
+
+            <!-- Additional fields for college students -->
+            <div id="collegeFields" class="mb-4" style="display: none;">
+                <label for="collegeField" class="block text-sm font-medium text-gray-700">College Field</label>
+                <input type="text" id="collegeField" name="collegeField" placeholder="Computer Science, Engineering, etc." class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <button type="submit" class="w-full bg-black text-white py-2 rounded-md text-center">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

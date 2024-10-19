@@ -3,7 +3,7 @@
 }
 
 body {
-	background-color: #ffe6ff;
+	background-color: #d4f1f4;
 	font-family: 'Calibri', 'Roboto', sans-serif;
 
 	height: 100%;
@@ -11,92 +11,205 @@ body {
 	/* Prevents scrolling */
 	margin: 0;
 	/* Removes any default margin */
+	background-color: var(--background-color);
+	color: var(--text-color);
+}
 
+/* Default theme variables (light theme) */
+:root {
+	--background-color: #d4f1f4;
+	--text-color: #000000;
+	--textradio-color: rgb(255, 255, 255);
+	--chat-bg-color: #d4f1f4;
+	--menu-bg-color: #eae9e9;
+	--button-bg-color: #189ab47d;
+}
+
+/* Dark theme variables */
+body.dark-theme {
+	--background-color: #071e26;
+	/* Changed to #071e26 */
+	--text-color: #ffffff;
+	--chat-bg-color: #444444;
+	--menu-bg-color: #555555;
+	--button-bg-color: #777777;
+}
+
+/* Other instances of #d4f1f4 in dark theme */
+body.dark-theme .top_menu,
+body.dark-theme .chat_window,
+body.dark-theme .messages .message.left .text_wrapper {
+	background-color: #071e26;
+	/* Change background color to #071e26 */
+}
+
+/* Ensure other elements are also updated accordingly */
+body.dark-theme .bottom_wrapper {
+	background-color: #071e26;
+	/* Change background color to #071e26 */
+}
+
+body.dark-theme .message-input {
+	color: #000000;
+}
+
+body.dark-theme .messages .message.left .timestamp {
+	color: #fdfdfd;
+	/* Change background color to #071e26 */
+}
+
+/* Theme toggle switch styling */
+.theme-toggle {
+	position: relative;
+	display: inline-block;
+	width: 60px;
+	height: 34px;
+}
+
+.theme-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: 0.4s;
+	border-radius: 34px;
+}
+
+.slider:before {
+	position: absolute;
+	content: "";
+	height: 26px;
+	width: 26px;
+	left: 4px;
+	bottom: 4px;
+	background-color: white;
+	transition: 0.4s;
+	border-radius: 50%;
+}
+
+input:checked+.slider {
+	background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+	transform: translateX(26px);
+}
+
+h3 {
+	color: white;
 }
 
 .row.padded_row,
 .row.padded_row>div {
 	padding-top: 20px;
 	padding-bottom: 20px;
+	padding-left: 20px;
+}
+
+/* change theme ke options editing */
+
+/* Increase size of radio buttons */
+input[type="radio"] {
+	transform: scale(1.5);
+	/* Adjust scale for size */
+	accent-color: white;
+	/* Change radio button color */
+	cursor: pointer;
+}
+
+/* Style the label text */
+/* .radio-button+label {
+	font-size: 20px;
+	color: var(--textradio-color);
+	background-color: transparent;
+	cursor: pointer;
+} */
+label {
+	font-size: 20px;
+	color: var(--textradio-color);
+	/* Use the theme variable for text color */
+	background-color: transparent;
+	cursor: pointer;
+}
+
+.settings-list li {
+	font-size: 20px;
+	cursor: pointer;
 }
 
 /* layout and common global classes */
 /* ---------------------------------------------------------------------- */
 
 .chat_window {
-	border-radius: 20px;
-	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-	background-color: #e6ccff;
+	/* border-radius: 20px; */
+	/* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); */
+	background-color: #d4f1f4;
 	overflow: hidden;
-	width: 1150px;
-	margin-left: 25%;
+	width: 1300px;
+	margin-left: 30%;
 	position: relative;
 	/* Allows you to use top for positioning */
-	top: -20px;
+	top: 30px;
+	height: 100vh;
+	background-color: var(--chat-bg-color);
 }
 
-.scrollable-sidebar {
-	position: absolute;
-	top: 0px;
-	/* Adjust to align with your design */
-	left: 20px;
-	width: 300px;
-	height: 900px;
-	/* Adjust the height as needed */
-	overflow-y: scroll;
-	background-color: #f2e6ff;
-	padding: 10px;
-	border-radius: 10px;
-	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.scrollable-sidebar .new-chat a {
-	color: #000000;
-	font-size: 20px;
-	position: absolute;
-	top: 80px;
-	left: 30px;
-}
 
 .top_menu {
-	background-color: #e6ccff;
+	background-color: #d4f1f4;
 	padding: 13px 0px;
 	box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 75px;
+	z-index: 999;
 }
 
-.top_menu .title {
-	text-align: left;
-	color: #000000;
-	font-size: 30px;
-	margin-left: 50px;
-
+.top_menu .title img {
+	margin-left: 100px;
+	margin-top: -5px;
+	width: 200px;
+	height: 60px;
 }
 
 .top_menu .image-link img {
 	position: fixed;
-	right: 70px;
+	right: 50px;
 	/* Adjust to control the distance from the right */
-	top: 8%;
+	top: 5%;
 	/* Align the image vertically */
 	transform: translateY(-50%);
 	width: 50px;
 	/* Adjust the width of the image */
 	height: 50px;
 	border-radius: 70px;
+	align-items: center;
 	/* Optional: rounded corners */
 }
 
 .dropdown-content {
 	display: none;
-	position: absolute;
+	position: fixed;
 	background-color: #eae9e9;
 	min-width: 200px;
 	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 	border-radius: 8px;
-	z-index: 1;
+	z-index: 1000;
 	top: 60px;
 	/* Adjust this based on the image's position */
-	right: 10px;
+	right: 50px;
+	background-color: var(--menu-bg-color);
 }
 
 /* Dropdown links */
@@ -106,8 +219,58 @@ body {
 	padding: 12px 16px;
 	text-decoration: none;
 	display: block;
-	transition: background-color 0.3s ease;
+	transition: background-color 0.3s ease, color 0.3s ease;
+	/* border-bottom: 1px solid rgba(0, 0, 0, 0.1); */
+	/* Optional: Separator */
 }
+
+/* Hover effect for dropdown links */
+.dropdown-content a:hover {
+	background-color: #189ab47d;
+	/* Light blue background */
+	color: white;
+	/* Change text color on hover */
+	border-radius: 10px;
+	background-color: var(--button-bg-color);
+}
+
+/* Optional: Style the last element without a bottom border */
+.dropdown-content a:last-child {
+	border-bottom: none;
+}
+
+.line {
+	width: 210px;
+	height: 2px;
+	margin-left: 10px;
+	margin-right: 20px;
+	margin-top: -20px;
+	background-color: #00000078;
+}
+
+/* settings starts from here */
+#settings-window {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 400px;
+	background-color: #fff;
+	border-radius: 5px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+	padding: 20px;
+}
+
+.close-button {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	cursor: pointer;
+}
+
+/* ends here */
+
 
 /* messages inside the chatbox */
 /* ---------------------------------------------------------------------- */
@@ -117,7 +280,7 @@ body {
 	list-style: none;
 	padding: 20px 10px 0 10px;
 	margin: 0;
-	height: 500px;
+	height: 550px;
 	overflow-y: auto;
 
 }
@@ -128,14 +291,30 @@ body {
 	margin-bottom: 20px;
 	transition: all 0.5s linear;
 	opacity: 0;
+	width: 900;
+}
+
+.messages .voice_on {
+	font-size: large;
+	margin-left: 50px;
+
 }
 
 .messages .message .avatar {
-	height: 40px;
-	width: 40px;
+	height: 35px;
+	width: 35px;
 	background-size: cover !important;
-	border-radius: 50%;
+	border-radius: 20%;
 	display: inline-block;
+}
+
+.messages .message .text_wrapper {
+	display: inline-block;
+	padding: 10px;
+	border-radius: 6px;
+	min-width: 150px;
+	position: relative;
+	font-size: 18px;
 }
 
 .messages .message .timestamp {
@@ -145,66 +324,46 @@ body {
 	margin-top: 5px;
 }
 
+
+
 .messages .message.appeared {
 	opacity: 1;
-}
-
-.messages .message .text_wrapper {
-	display: inline-block;
-	padding: 10px;
-	border-radius: 6px;
-	min-width: 150px;
-	position: relative;
-}
-
-.messages .message .text_wrapper::after,
-.messages .message .text_wrapper:before {
-	top: 18px;
-	border: solid transparent;
-	content: ' ';
-	height: 0;
-	width: 0;
-	position: absolute;
-	pointer-events: none;
-}
-
-.messages .message .text_wrapper::after {
-	border-width: 13px;
-	margin-top: 0px;
-}
-
-.messages .message .text_wrapper::before {
-	border-width: 15px;
-	margin-top: -2px;
 }
 
 /* bot message */
 
 .messages .message.left .avatar {
 	float: left;
-	background: url('./img/bot.jpg');
+	background: url('./img/logo_copy.png');
 }
 
 .messages .message.left .text_wrapper {
-	border-width: 2px;
-	border-style: groove;
-	/* border-color: #5e3a5c; */
-	background-color: #ffffff;
+	display: inline-block;
+	/* Adjust size to content */
+	background-color: #b9dde1;
 	margin-left: 20px;
+	margin-right: 20px;
+	border-width: 2px;
+	border-radius: 10px;
+	/* Optional: Add rounded corners */
+	padding: 10px 15px;
+	/* Add some padding inside */
+	max-width: 85%;
+	/* Limit the message width */
+	word-wrap: break-word;
+	/* Ensure long words wrap properly */
+	box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+	/* Optional shadow */
+
 }
 
-/* .messages .message.left .text_wrapper::after,
-.messages .message.left .text_wrapper::before {
-	border-width: 2px;
-	border-style: solid;
-	border-color: #000;
-	right: 100%;
-	border-right-color: #e6ccff;
-} */
-/* 
-/Ai ka timestamp/ */
+
+/*Ai ka timestamp*/
 .messages .message.left .timestamp {
 	color: #000000;
+	text-align: left;
+	margin-top: 10px;
+
 }
 
 /* user message */
@@ -215,20 +374,20 @@ body {
 }
 
 .messages .message.right .text_wrapper {
-	background-color: #000000b7;
+	background-color: #05445e;
 	color: #ffffff;
-	border-width: 2px;
-	border-style: groove;
-	margin-right: 10px;
+	border-width: 0px;
+	/* border-style: groove; */
+	margin-right: 20px;
+	margin-left: 50px;
 	float: right;
+	border-radius: 10px;
+	text-align: left;
 }
 
-.messages .message.right .text_wrapper::after,
-/*.messages .message.right .text_wrapper::before {
-	left: 100%;
-	border-left-color: #000000;
-}*/
 
+
+/* user ke msg ka time */
 .messages .message.right .timestamp {
 	color: #ffffff;
 }
@@ -236,10 +395,11 @@ body {
 /* text inpur from user */
 
 .bottom_wrapper {
-	background-color: #e6ccff;
+	background-color: #d4f1f4;
 	padding: 20px;
 	bottom: 0;
 	display: flex;
+	width: 900;
 }
 
 .bottom_wrapper #msg_input {
@@ -252,8 +412,8 @@ body {
 }
 
 .app_button_1 {
-	width: 120px;
-	background-color: #000000b7;
+	width: 100px;
+	background-color: #05445e;
 	border-radius: 50px;
 	cursor: pointer;
 	padding: 12px;
@@ -262,4 +422,289 @@ body {
 	font-size: 18px;
 	font-weight: 300;
 	text-align: center;
+
+	margin-left: 10px;
+}
+body.dark-theme .app_button_1 {
+	color: #000000;
+	font-weight: 200;
+	background-color: #a8d5e5;
+}
+
+/* left mai history wala dropdown */
+.dropdownleft {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+}
+
+.dropdownleft-toggle {
+	/* background-image: url('threelines.png'); */
+	/* Default image */
+	/* background-size: cover; */
+	/* Ensure the image covers the button */
+	background-color: transparent;
+	border: none;
+	border-radius: 70px;
+	padding: 0;
+	width: 70px;
+	/* Set button width */
+	height: 50px;
+	/* Set button height */
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.dropdownleft-toggle:hover {
+	/* background-image: url('threelineshighlight.png'); */
+	background-color: #189ab4;
+	/* Image on hover */
+}
+
+.dropdownleft-toggle img {
+	width: 70px;
+	height: 70px;
+	vertical-align: middle;
+	margin-top: -10px;
+}
+
+.dropdownleft-menu {
+	position: absolute;
+	top: 60px;
+	left: -250px;
+	/* Start off-screen */
+	width: 250px;
+	/* Set the width of the dropdownleft */
+	height: 100vh;
+	/* Make the dropdownleft full height */
+	background-color: #b9dde1;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	overflow-y: auto;
+	/* Add vertical scroll if content exceeds the height */
+	transition: left 0.3s ease, opacity 0.3s ease;
+	/* Add transition for sliding effect */
+	opacity: 0;
+	/* Start as invisible */
+	/* border-right: 2px solid #495c67b6; */
+	padding-left: 10px;
+	/* Add right border */
+}
+
+body.dark-theme .dropdownleft-menu {
+	background-color: #0a232c;
+}
+
+/* Show class for sliding effect */
+.dropdownleft-menu.show {
+	left: 10px;
+	/* Slide into view */
+	opacity: 1;
+	/* Make it fully visible */
+}
+
+.dropdownleft-menu li {
+	list-style: none;
+	padding: 10px;
+	transition: background-color 0.3s ease, color 0.3s ease;
+	/* border-bottom: 1px solid rgba(0, 0, 0, 0.1); */
+	/* Optional: Add a separator */
+}
+
+.dropdownleft-menu a {
+	color: #333;
+	text-decoration: none;
+	padding-left: 5px;
+	/* Add padding to the left of the text */
+	font-size: 16px;
+	/* Increase the text size (adjust this value as needed) */
+	font-weight: 500;
+	transition: color 0.3s ease;
+	/* Smooth transition for text color */
+}
+
+/* Hover effect for each list item */
+.dropdownleft-menu li:hover {
+	background-color: #89bfc2;
+	/* Change background color on hover */
+}
+
+body.dark-theme .dropdownleft-menu li:hover {
+	background-color: #89bfc292;
+}
+
+/* Optional: Change the link color when hovering */
+.dropdownleft-menu li:hover a {
+	color: white;
+	/* Adjust text color on hover */
+}
+
+/* faq section | right side */
+/* ---------------------------------------------------------------------- */
+.panel-group {
+	margin: 20px;
+}
+
+.panel-heading [data-toggle='collapse']:after {
+	font-family: 'FontAwesome';
+	content: '\f054';
+	float: right;
+	font-size: 25px;
+	line-height: 22px;
+	transition: all 0.2s linear;
+
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+}
+
+.panel-heading [data-toggle='collapse'].collapsed:after {
+	-webkit-transform: rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
+	transform: rotate(90deg);
+}
+
+.settings-window {
+	border-radius: 30px;
+	background-color: #05445e;
+	overflow: hidden;
+	width: 700px;
+	height: 60vh;
+	/* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); */
+	position: relative;
+}
+
+.settings-window .top {
+	color: #fff;
+	font-size: 30;
+	margin-left: 10px;
+}
+
+/* Close Button */
+.settings-window .top-close {
+	background-color: #05445e;
+	position: relative;
+	border-radius: 5px;
+	border: none;
+	width: 30px;
+	height: 30px;
+	font-size: 18px;
+	left: 550px;
+	top: -10px;
+	font-weight: 100px;
+	cursor: pointer;
+	color: #f0f0f0;
+}
+
+.settings-window .top-close:hover {
+	background-color: #e0e0e0;
+	color: black;
+	border-radius: 40px;
+}
+
+/* Custom Styles for the Settings Overlay */
+.settings-overlay {
+	position: fixed;
+	/* Fixed position to cover the entire screen */
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	/* Semi-transparent background */
+	z-index: 1000;
+	/* High z-index to sit on top of everything */
+	display: none;
+	/* Initially hidden */
+}
+
+.settings-container {
+	position: absolute;
+	/* Absolute position relative to the overlay */
+	top: 35%;
+	/* Center vertically */
+	left: 30%;
+	/* Center horizontally */
+	transform: translate(-50%, -50%);
+	/* Offset to truly center */
+	background: #05445e;
+	/* White background for the settings */
+	padding: 20px;
+	/* Padding for aesthetics */
+	border-radius: 30px;
+	/* Rounded corners */
+	box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+	/* Shadow for depth */
+	z-index: 1001;
+	/* Higher than overlay */
+}
+
+.settings-window .settings-option {
+	font-size: 20px;
+
+}
+
+/* Content Section */
+.content {
+	display: flex;
+	height: calc(100% - 60px);
+	/* Adjust height excluding the top section */
+}
+
+/* Sidebar with Options */
+.sidebar {
+	width: 30%;
+	background-color: #05445e;
+	padding: 10px;
+}
+
+.sidebar ul {
+	list-style: none;
+	padding: 0;
+	margin-left: 15px;
+}
+
+.sidebar li {
+	padding: 10px;
+	color: #f0f0f0;
+	font-size: 15px;
+	cursor: pointer;
+}
+
+.sidebar li:hover {
+	background-color: #5d6669;
+}
+
+/* vertical line */
+.vertical-line {
+	width: 2px;
+	/* Width of the vertical line */
+	background-color: #ffffff;
+	/* Color of the vertical line */
+	height: 100%;
+	/* Full height */
+	float: left;
+	margin-top: -20px;
+	/* Align to the left */
+	margin-right: 20px;
+	/* Space between line and right panel */
+}
+
+/* Right Panel Content */
+.right-panel {
+	width: 70%;
+	padding: 20px;
+	background-color: #05445e;
+}
+
+.panel-content {
+	display: none;
+	/* Hide all content initially */
+}
+
+.panel-content h3 {
+	margin-top: 0;
 }

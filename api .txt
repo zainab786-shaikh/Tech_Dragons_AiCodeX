@@ -1,0 +1,2 @@
+76b49b0b7a157016612ff7d23822c21faee1d97cbc80492a6da93c422e7b945b --- api key
+https://models.aixplain.com/api/v1/execute/64d21cbb6eb563074a698ef1 -- gpt 4 microsoft

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script>
+        // Function to check if the email exists and allow login
+        function loginUser(event) {
+            event.preventDefault(); // Prevent form submission
+    
+            const emailInput = document.getElementById('email').value;
+            let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || [];
+    
+            // Check if the email exists in LocalStorage
+            const existingUser = registeredUsers.find(user => user.email === emailInput);
+    
+            if (existingUser) {
+                // Store the student's name for future use
+                localStorage.setItem('nameInput', existingUser.name);
+    
+                alert(`Login successful! Welcome back, ${existingUser.name}!`);
+                window.location.href = "bot.html"; // Redirect to bot page  
+            } else {
+                alert("Email not found. Please sign up.");
+                window.location.href = "signUp.html"; // Redirect to sign-up page
+            }
+        }
+    </script>
+    
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen" style="background-image: url('images/Sign Up.png'); background-size: cover; background-position: center;">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md bg-opacity-90">
+        <h2 class="text-2xl font-bold text-center mb-6">Log in to your account</h2>
+        <form onsubmit="loginUser(event)">
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" placeholder="example.email@gmail.com" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-black text-white py-2 rounded-md text-center">Log in</button>
+        </form>
+        <p class="mt-6 text-center text-sm text-gray-600">
+            Don't have an account? <a href="signUp.html" class="text-blue-600">Sign up</a>
+        </p>
+    </div>
+</body>
+</html>

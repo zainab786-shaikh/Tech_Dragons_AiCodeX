@@ -1,0 +1,122 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1em;
+    text-align: center;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+nav li {
+    margin-right: 20px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.start-chat-btn, .notif-btn, .profile-btn {
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.start-chat-btn:hover, .notif-btn:hover, .profile-btn:hover {
+    background-color: #3e8e41;
+}
+
+.chat-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+.chat-log {
+    padding: 20px;
+}
+
+.message-bubble {
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.message-bubble.left {
+    margin-left: 20px;
+    background-color: #f7f7f7;
+}
+
+.message-bubble.right {
+    margin-right: 20px;
+    background-color: #fff;
+}
+
+footer {
+    padding: 10px;
+    background-color: #f7f7f7;
+    border-top: 1px solid #ddd;
+}
+
+#message-input {
+    width: 80%;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+}
+
+#send-btn, #attach-btn, #emoji-btn {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Responsive design */
+
+@media (max-width: 768px) {
+    .chat-container {
+        max-width: 90%;
+    }
+    .chat-log {
+        padding: 10px;
+    }
+    .message-bubble {
+        margin-bottom: 10px;
+        padding: 5px;
+    }
+    footer {
+        padding: 5px;
+    }
+    #message-input {
+        width: 70%;
+    }
+}
