@@ -140,12 +140,9 @@ async function handleExplainTopic() {
 
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
-<<<<<<< HEAD
 
     // Store the explanation provided by the bot
     botExplanation = botResponse;
-=======
->>>>>>> 50e8ad77afd7c384f82bb1e8b97586c3e428ae90
     
     stage = "handleCheckTopicExplanation"; // Move to check understanding stage
     return stage;
@@ -179,11 +176,7 @@ async function handleUserUnderstandingOfTopic(userMessage) {
     }
 }
 async function handleMCQ() {
-<<<<<<< HEAD
     let botMessage = "Based on the "+botExplanation+" , Share 5 MCQs on the following topic with 4 options each, without the answer. Topic is: " + topic;
-=======
-    let botMessage = "Share 2 MCQs on the following topic with 4 options each, without the answer. Topic is: " + topic;
->>>>>>> 50e8ad77afd7c384f82bb1e8b97586c3e428ae90
     let botResponse = await sendMessageToBot(botMessage);
     
     // Split questions based on the pattern "number + period + space"
@@ -215,7 +208,6 @@ async function handleMCQEachAnswer(userMessage) {
     var correctAnswerArr = correctAnswer.split('');
     correctAnswer = correctAnswerArr[0];
 
-<<<<<<< HEAD
     userAns = userMessage.trim().toUpperCase();
 
         if (correctAnswer === userAns) {
@@ -250,32 +242,11 @@ async function handleMCQEachAnswer(userMessage) {
 
     // Increment mcqCurrentQuestion after saving the answer
     mcqCurrentQuestion++; 
-=======
-async function handleMCQEachAnswer(userMessage) {
-    // Get the current question before incrementing
-    const currentQuestion = mcqQuestions[mcqCurrentQuestion];
-
-    let botMessage = "Kindly check the answer for the following question and provide the correct answer if the user is wrong or right and also explain the answer: \n\nMCQ Question: \n" + currentQuestion + "\n\n Answer: " + userMessage;
-    
-    let botResponse = await sendMessageToBot(botMessage);
-    showBotMessage(botResponse);
-
-    // Push the current question and user answer to mcqData
-    mcqData.push({
-        'question': currentQuestion,
-        'answer': userMessage
-    });
-
-    // Increment mcqCurrentQuestion after saving the answer
-    mcqCurrentQuestion++;
-    
->>>>>>> 50e8ad77afd7c384f82bb1e8b97586c3e428ae90
     stage = "handleMCQEachQuestion";
     return stage;
 }
 
 async function handleMCQDone() {
-<<<<<<< HEAD
     // Determine overall understanding based on correctAnswersCount
     let understandingFeedback;
     if (correctAnswersCount === mcqQuestions.length) {
@@ -290,24 +261,15 @@ async function handleMCQDone() {
         " Based on this data, " + understandingFeedback + 
         " If the user has not grasped certain concepts, kindly suggest specific areas for revision." +
         " If all answers are correct, please congratulate the user with an encouraging quote and answer it as you are a teacher and don't mention JSON object.";
-=======
-    let botMessage = "Please analyze the following JSON object containing a list of questions with multiple-choice options, along with the user's provided answers: " + JSON.stringify(mcqData) + "..."+
-        ". Based on this data, determine whether the user has demonstrated a clear understanding of the topic: " + topic + ". " +
-        "If the user has not grasped certain concepts, kindly suggest specific areas for revision. " +
-        "If all answers are correct, please congratulate the user with an encouraging quote.";
->>>>>>> 50e8ad77afd7c384f82bb1e8b97586c3e428ae90
 
     let botResponse = await sendMessageToBot(botMessage);
     showBotMessage(botResponse);
     
-<<<<<<< HEAD
 
     
     showBotMessage("You have achieved " + pointStr + " in this topic ");
 
     // Reset for next interaction
-=======
->>>>>>> 50e8ad77afd7c384f82bb1e8b97586c3e428ae90
     stage = "handleWelcome";
     correctAnswersCount = 0; // Reset for the next session
     return stage;
