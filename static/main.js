@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    loadSchoolData();
     $('#msg_input').keydown(function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -24,7 +25,11 @@ $(document).ready(function () {
 });
 
 var stage = "handleWelcome";
+var className = "10th";
+var subject = "";
+var lesson = "";
 var topic = "";
+var topicList = "";
 var count = 0;
 var mcqQuestions = [];
 var mcqCurrentQuestion = 0;
@@ -99,20 +104,48 @@ async function handleInteraction(userMessage) {
     }
 }
 
+var data;
+
 async function handleWelcome() {
+
+
     let userMessage = "Enter the topic you wish to learn"
-    showBotMessage(userMessage);
+
+    let completionStatus = JSON.stringify(getSubjectCompletionPercentage(className));
+    let botMessage = "Kindly draft a status message using the following JSON containing the subjectName and completionPercentage for each subject. Promote to use this AI tutor to cover the remaiing subjects and topics: " + completionStatus;
+    let botResponse = await sendMessageToBot(botMessage);
+    showBotMessage(botResponse);
+
+    let lessonToComplete = JSON.stringify(getNextLessonAndTopic(className));
+    botMessage = "The following json contain the subjectName, nextLesson in each subject and nextTopic in each lesson. Kindly present to user list of subject, lesson and topic. Ask the user to select one topic from the list: " + lessonToComplete;
+    botResponse = await sendMessageToBot(botMessage);
+    showBotMessage(botResponse);
+    topicList = botResponse
+
+    //showBotMessage(userMessage);
     stage = "handleCheckTopic";
 
     return stage;
 }
 
 async function handleCheckTopic(userMessage) {
-    let botMessage = "Check if the following topic is a valid topic. If valid, just simple return 'valid-' followed by topic name: " + userMessage
+    let botMessage = "Check if the user selection: " + userMessage + " is selected from the list of topics: " + topicList + 
+        " If valid, just simple return 'valid-' followed by subject, lesson and topic name. All the 3 separated with # ";
     let botResponse = await sendMessageToBot(botMessage);
     const prefix = "valid-";
+    const separator = "#";
     if (botResponse.startsWith(prefix)) {
-        topic = botResponse.substring(prefix.length);
+        lessonAndTopics = botResponse.substring(prefix.length);
+        const parts = lessonAndTopics.split('#');
+
+        // Extract the lesson name and topic name
+        subject = parts[0]; // This will be "valid-lesson name"
+        lesson = parts[1]; // This will be "valid-lesson name"
+        topic = parts[2];   // This will be "Topic name"
+        markTopicAsCompleted(className, subject, lesson, topic);
+
+        //let nextList = getNextLessonAndTopic(className);
+        //let topicCompleted = JSON.stringify(getSubjectCompletionPercentage(className));
         mcqData=[];
         stage = "handleExplainTopic";
     } else {
@@ -268,6 +301,8 @@ async function handleMCQDone() {
 
     
     showBotMessage("You have achieved " + pointStr + " in this topic ");
+
+    markTopicAsCompleted(className, subject, lesson, topic);
 
     // Reset for next interaction
     stage = "handleWelcome";
@@ -429,7 +464,7 @@ async function runPipeline(inputData) {
             method: 'POST',
             body: JSON.stringify({ data: inputData }),
             headers: {
-                'x-api-key': '76b49b0b7a157016612ff7d23822c21faee1d97cbc80492a6da93c422e7b945b',
+                'x-api-key': '04bd2605bac79f25dce0b7c09ded066cf5f1bebf3ba5eb944e5bb4ff0be453b6',
                 'Content-Type': 'application/json'
             }
         });
@@ -454,7 +489,7 @@ async function pollForResponse(dataUrl) {
             const statusResponse = await fetch(dataUrl, {
                 method: 'GET',
                 headers: {
-                    'x-api-key': '76b49b0b7a157016612ff7d23822c21faee1d97cbc80492a6da93c422e7b945b',
+                    'x-api-key': '04bd2605bac79f25dce0b7c09ded066cf5f1bebf3ba5eb944e5bb4ff0be453b6',
                     'Content-Type': 'application/json'
                 }
             });
@@ -479,7 +514,7 @@ async function getAudioOutput(inputData) {
                 data: inputData
             }),
             headers: {
-                'x-api-key': '76b49b0b7a157016612ff7d23822c21faee1d97cbc80492a6da93c422e7b945b',
+                'x-api-key': '04bd2605bac79f25dce0b7c09ded066cf5f1bebf3ba5eb944e5bb4ff0be453b6',
                 'Content-Type': 'application/json'
             }
         });
@@ -491,4 +526,566 @@ async function getAudioOutput(inputData) {
     } catch (error) {
         return null;
     }
+}
+
+
+//=============================================================================
+// Assume the JSON structure is stored in a variable called 'data'
+
+// Helper function to find a class by name
+function findClass(className) {
+    return data.classes.find(c => c.name === className);
+  }
+  
+  // 1. Given a class get the list of subjects, lessons and topics
+  function getClassDetails(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => ({
+      subjectName: subject.name,
+      lessons: subject.lessons.map(lesson => ({
+        lessonName: lesson.name,
+        topics: lesson.topics.map(topic => topic.name)
+      }))
+    }));
+  }
+  
+  // 2. Given a class get the list of all subjects, along with their completed lesson and topics
+  function getCompletedLessonsAndTopics(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => ({
+      subjectName: subject.name,
+      completedLessons: subject.lessons
+        .filter(lesson => lesson.topics.every(topic => topic.completed))
+        .map(lesson => lesson.name),
+      completedTopics: subject.lessons.flatMap(lesson =>
+        lesson.topics.filter(topic => topic.completed).map(topic => topic.name)
+      )
+    }));
+  }
+  
+  // 3. Given a class get the list of all subjects, along with the percentage of subject completed
+  function getSubjectCompletionPercentage(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => {
+      const totalTopics = subject.lessons.reduce((sum, lesson) => sum + lesson.topics.length, 0);
+      const completedTopics = subject.lessons.reduce((sum, lesson) =>
+        sum + lesson.topics.filter(topic => topic.completed).length, 0);
+      const percentage = (completedTopics / totalTopics) * 100;
+  
+      return {
+        subjectName: subject.name,
+        completionPercentage: Math.round(percentage * 100) / 100
+      };
+    });
+  }
+  
+  // 4. Given a class get the list of all subjects, lessons in each subject along with the percentage of lessons completed
+  function getLessonCompletionPercentage(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => ({
+      subjectName: subject.name,
+      lessons: subject.lessons.map(lesson => {
+        const totalTopics = lesson.topics.length;
+        const completedTopics = lesson.topics.filter(topic => topic.completed).length;
+        const percentage = (completedTopics / totalTopics) * 100;
+  
+        return {
+          lessonName: lesson.name,
+          completionPercentage: Math.round(percentage * 100) / 100
+        };
+      })
+    }));
+  }
+  
+  // 5. Given a class get the list of all subjects, along with their remaining lesson and topics
+  function getRemainingLessonsAndTopics(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => ({
+      subjectName: subject.name,
+      remainingLessons: subject.lessons
+        .filter(lesson => lesson.topics.some(topic => !topic.completed))
+        .map(lesson => ({
+          lessonName: lesson.name,
+          remainingTopics: lesson.topics.filter(topic => !topic.completed).map(topic => topic.name)
+        }))
+    }));
+  }
+  
+  // 6. Given a class get the list of all subjects, along with their next lesson and topic from the remaining lesson and topics
+  function getNextLessonAndTopic(className) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    return classData.subjects.map(subject => {
+      const nextLesson = subject.lessons.find(lesson =>
+        lesson.topics.some(topic => !topic.completed)
+      );
+  
+      return {
+        subjectName: subject.name,
+        nextLesson: nextLesson ? {
+          lessonName: nextLesson.name,
+          nextTopic: nextLesson.topics.find(topic => !topic.completed).name
+        } : null
+      };
+    });
+  }
+  
+  // 7. Given a class, subject, and lesson get the next topic from the topics in that lesson
+  function getNextTopic(className, subjectName, lessonName) {
+    const classData = findClass(className);
+    if (!classData) return null;
+  
+    const subject = classData.subjects.find(s => s.name === subjectName);
+    if (!subject) return null;
+  
+    const lesson = subject.lessons.find(l => l.name === lessonName);
+    if (!lesson) return null;
+  
+    return lesson.topics.find(topic => !topic.completed)?.name || null;
+  }
+
+//=============================================================================
+
+// Function to load the JSON file
+function loadSchoolData(filename) {
+  try {
+    //const rawData = fs.readFileSync(filename, 'utf8');
+    //data = JSON.parse(rawData);
+    data = {
+        "classes": [
+          {
+            "name": "10th",
+            "subjects": [
+              {
+                "name": "Mathematics",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Real Numbers",
+                    "topics": [
+                      {"name": "Euclid’s Division Lemma", "completed": false},
+                      {"name": "Fundamental Theorem of Arithmetic", "completed": false},
+                      {"name": "Irrational Numbers", "completed": false},
+                      {"name": "Decimal Expansions of Rational Numbers", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Polynomials",
+                    "topics": [
+                      {"name": "Zeros of a Polynomial", "completed": false},
+                      {"name": "Relationship Between Zeros and Coefficients", "completed": false},
+                      {"name": "Division Algorithm for Polynomials", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 3: Pair of Linear Equations in Two Variables",
+                    "topics": [
+                      {"name": "Graphical Method", "completed": false},
+                      {"name": "Substitution Method", "completed": false},
+                      {"name": "Elimination Method", "completed": false},
+                      {"name": "Cross-Multiplication Method", "completed": false},
+                      {"name": "Word Problems", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 4: Quadratic Equations",
+                    "topics": [
+                      {"name": "Standard Form of a Quadratic Equation", "completed": false},
+                      {"name": "Solutions by Factorization", "completed": false},
+                      {"name": "Completing the Square Method", "completed": false},
+                      {"name": "Quadratic Formula", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 5: Arithmetic Progressions",
+                    "topics": [
+                      {"name": "Introduction to Sequences", "completed": false},
+                      {"name": "General Term of an AP", "completed": false},
+                      {"name": "Sum of First 'n' Terms of an AP", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 6: Triangles",
+                    "topics": [
+                      {"name": "Similarity of Triangles", "completed": false},
+                      {"name": "Criteria for Similarity (AAA, SAS, SSS)", "completed": false},
+                      {"name": "Areas of Similar Triangles", "completed": false},
+                      {"name": "Pythagoras Theorem", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 7: Coordinate Geometry",
+                    "topics": [
+                      {"name": "Distance Formula", "completed": false},
+                      {"name": "Section Formula", "completed": false},
+                      {"name": "Area of a Triangle in Coordinate Plane", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 8: Introduction to Trigonometry",
+                    "topics": [
+                      {"name": "Trigonometric Ratios", "completed": false},
+                      {"name": "Trigonometric Identities", "completed": false},
+                      {"name": "Trigonometric Ratios of Complementary Angles", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 9: Applications of Trigonometry",
+                    "topics": [
+                      {"name": "Heights and Distances", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 10: Circles",
+                    "topics": [
+                      {"name": "Tangent to a Circle", "completed": false},
+                      {"name": "Theorem on Tangents from an External Point", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 11: Constructions",
+                    "topics": [
+                      {"name": "Division of Line Segment", "completed": false},
+                      {"name": "Construction of Tangents to a Circle", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 12: Areas Related to Circles",
+                    "topics": [
+                      {"name": "Perimeter and Area of Circle, Sector, and Segment", "completed": false},
+                      {"name": "Area of Combination of Plane Figures", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 13: Surface Areas and Volumes",
+                    "topics": [
+                      {"name": "Surface Area of Cubes, Cylinders, Cones, and Spheres", "completed": false},
+                      {"name": "Volume of Cubes, Cylinders, Cones, and Spheres", "completed": false},
+                      {"name": "Problems Involving Frustum of a Cone", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 14: Statistics",
+                    "topics": [
+                      {"name": "Mean, Median, Mode of Grouped Data", "completed": false},
+                      {"name": "Graphical Representation of Cumulative Frequency", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 15: Probability",
+                    "topics": [
+                      {"name": "Classical Definition of Probability", "completed": false},
+                      {"name": "Probability of Complementary Events", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Physics",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Light – Reflection and Refraction",
+                    "topics": [
+                      {"name": "Laws of Reflection and Refraction", "completed": false},
+                      {"name": "Image Formation by Spherical Mirrors", "completed": false},
+                      {"name": "Mirror Formula", "completed": false},
+                      {"name": "Refraction Through Lenses", "completed": false},
+                      {"name": "Lens Formula", "completed": false},
+                      {"name": "Magnification", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Human Eye and the Colourful World",
+                    "topics": [
+                      {"name": "Structure of the Human Eye", "completed": false},
+                      {"name": "Defects of Vision and Their Correction", "completed": false},
+                      {"name": "Dispersion of Light by a Prism", "completed": false},
+                      {"name": "Atmospheric Refraction", "completed": false},
+                      {"name": "Scattering of Light", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 3: Electricity",
+                    "topics": [
+                      {"name": "Electric Current and Circuit", "completed": false},
+                      {"name": "Ohm’s Law", "completed": false},
+                      {"name": "Resistance, Factors Affecting Resistance", "completed": false},
+                      {"name": "Series and Parallel Circuits", "completed": false},
+                      {"name": "Heating Effect of Electric Current", "completed": false},
+                      {"name": "Electric Power", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 4: Magnetic Effects of Electric Current",
+                    "topics": [
+                      {"name": "Magnetic Field and Its Representation", "completed": false},
+                      {"name": "Magnetic Field Due to a Current-Carrying Conductor", "completed": false},
+                      {"name": "Force on a Current-Carrying Conductor", "completed": false},
+                      {"name": "Electromagnetic Induction", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 5: Sources of Energy",
+                    "topics": [
+                      {"name": "Conventional Sources of Energy (Fossil Fuels, Thermal Power, etc.)", "completed": false},
+                      {"name": "Non-Conventional Sources (Solar Energy, Wind Energy, etc.)", "completed": false},
+                      {"name": "Advantages and Limitations of Energy Sources", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Chemistry",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Chemical Reactions and Equations",
+                    "topics": [
+                      {"name": "Chemical Equations", "completed": false},
+                      {"name": "Types of Reactions: Combination, Decomposition, Displacement, Double Displacement", "completed": false},
+                      {"name": "Redox Reactions", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Acids, Bases, and Salts",
+                    "topics": [
+                      {"name": "Properties of Acids and Bases", "completed": false},
+                      {"name": "The pH Scale", "completed": false},
+                      {"name": "Important Salts (e.g., Common Salt, Baking Soda)", "completed": false},
+                      {"name": "Uses of Acids, Bases, and Salts", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 3: Metals and Non-Metals",
+                    "topics": [
+                      {"name": "Physical and Chemical Properties of Metals and Non-Metals", "completed": false},
+                      {"name": "Reactivity Series", "completed": false},
+                      {"name": "Extraction of Metals", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 4: Carbon and Its Compounds",
+                    "topics": [
+                      {"name": "Classification of Carbon Compounds", "completed": false},
+                      {"name": "Functional Groups (Alkanes, Alkenes, Alkynes)", "completed": false},
+                      {"name": "Nomenclature of Organic Compounds", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 5: Periodic Classification of Elements",
+                    "topics": [
+                      {"name": "Mendeleev’s Periodic Table", "completed": false},
+                      {"name": "Modern Periodic Table", "completed": false},
+                      {"name": "Trends in the Periodic Table (Atomic Size, Metallic Character)", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Biology",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Life Processes",
+                    "topics": [
+                      {"name": "Nutrition, Respiration, Transport, and Excretion in Plants and Animals", "completed": false},
+                      {"name": "Photosynthesis in Plants", "completed": false},
+                      {"name": "Respiration in Organisms", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Control and Coordination",
+                    "topics": [
+                      {"name": "Nervous System in Humans", "completed": false},
+                      {"name": "Hormones and Their Functions", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 3: How do Organisms Reproduce?",
+                    "topics": [
+                      {"name": "Asexual and Sexual Reproduction", "completed": false},
+                      {"name": "Reproductive Health", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 4: Heredity and Evolution",
+                    "topics": [
+                      {"name": "Mendelian Genetics", "completed": false},
+                      {"name": "Evolutionary Processes", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 5: Our Environment",
+                    "topics": [
+                      {"name": "Ecosystem and its Components", "completed": false},
+                      {"name": "Biogeochemical Cycles", "completed": false},
+                      {"name": "Environmental Issues", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "English",
+                "lessons": [
+                  {
+                    "name": "Prose",
+                    "topics": [
+                      {"name": "The Hundred Dresses - I", "completed": false},
+                      {"name": "The Hundred Dresses - II", "completed": false},
+                      {"name": "The Beggar", "completed": false},
+                      {"name": "The Black Aeroplane", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Poetry",
+                    "topics": [
+                      {"name": "Dust of Snow", "completed": false},
+                      {"name": "Fire and Ice", "completed": false},
+                      {"name": "A Tiger in the Zoo", "completed": false},
+                      {"name": "How to Tell Wild Animals", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Grammar",
+                    "topics": [
+                      {"name": "Tenses", "completed": false},
+                      {"name": "Voice", "completed": false},
+                      {"name": "Direct and Indirect Speech", "completed": false},
+                      {"name": "Prepositions", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Writing Skills",
+                    "topics": [
+                      {"name": "Letter Writing", "completed": false},
+                      {"name": "Article Writing", "completed": false},
+                      {"name": "Essay Writing", "completed": false},
+                      {"name": "Story Writing", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "History",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: The Rise of Nationalism in Europe",
+                    "topics": [
+                      {"name": "Growth of Nationalism", "completed": false},
+                      {"name": "European Revolutions", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Nationalism in India",
+                    "topics": [
+                      {"name": "Freedom Struggle", "completed": false},
+                      {"name": "Role of Different Communities", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Geography",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Resources and Development",
+                    "topics": [
+                      {"name": "Types of Resources", "completed": false},
+                      {"name": "Resource Planning", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Agriculture",
+                    "topics": [
+                      {"name": "Types of Farming", "completed": false},
+                      {"name": "Agricultural Practices in India", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Political Science",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Power Sharing",
+                    "topics": [
+                      {"name": "Forms of Power Sharing", "completed": false},
+                      {"name": "Challenges of Power Sharing", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Federalism",
+                    "topics": [
+                      {"name": "Concept of Federalism", "completed": false},
+                      {"name": "Decentralization in India", "completed": false}
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Economics",
+                "lessons": [
+                  {
+                    "name": "Chapter 1: Development",
+                    "topics": [
+                      {"name": "Human Development", "completed": false},
+                      {"name": "Sustainable Development", "completed": false}
+                    ]
+                  },
+                  {
+                    "name": "Chapter 2: Sectors of the Indian Economy",
+                    "topics": [
+                      {"name": "Primary, Secondary, and Tertiary Sectors", "completed": false},
+                      {"name": "Employment in Sectors", "completed": false}
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      
+    console.log('Data loaded successfully.');
+  } catch (error) {
+    console.error('Error loading the file:', error);
+  }
+}
+
+// Function to mark a topic as completed
+function markTopicAsCompleted(className, subjectName, lessonName, topicName) {
+  const classData = findClass(className);
+  if (!classData) {
+    console.log(`Class ${className} not found.`);
+    return;
+  }
+
+  const subject = classData.subjects.find(s => s.name === subjectName);
+  if (!subject) { 
+    console.log(`Subject ${subjectName} not found in class ${className}.`);
+    return;
+  }
+
+  const lesson = subject.lessons.find(l => l.name === lessonName);
+  if (!lesson) {
+    console.log(`Lesson ${lessonName} not found in subject ${subjectName}.`);
+    return;
+  }
+
+  const topic = lesson.topics.find(t => t.name === topicName);
+  if (!topic) {
+    console.log(`Topic ${topicName} not found in lesson ${lessonName}.`);
+    return;
+  }
+
+  topic.completed = true;
+  console.log(`Topic ${topicName} marked as completed.`);
 }
